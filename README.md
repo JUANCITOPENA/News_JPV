@@ -1,12 +1,13 @@
-# 📰 JPV News: Manual de Desarrollo e Implementación
+# 📰 JPV News: Portal de Noticias y Cine Inteligente
 
-![Banner](https://capsule-render.vercel.app/api?type=waving&color=000000&height=250&section=header&text=JPV%20News&fontSize=90&animation=fadeIn&fontAlignY=38&desc=Manual%20Técnico%20Interactivo&descAlignY=51&descAlign=50)
+![Banner](https://capsule-render.vercel.app/api?type=waving&color=000000&height=250&section=header&text=JPV%20News&fontSize=90&animation=fadeIn&fontAlignY=38&desc=Manual%20de%20Ingeniería%20y%20Desarrollo&descAlignY=51&descAlign=50)
 
 <div align="center">
 
 ![NodeJS](https://img.shields.io/badge/Node.js-Backend-green?style=for-the-badge&logo=node.js)
-![Express](https://img.shields.io/badge/Express.js-Server-black?style=for-the-badge&logo=express)
+![Express](https://img.shields.io/badge/Express.js-Framework-black?style=for-the-badge&logo=express)
 ![Vercel](https://img.shields.io/badge/Vercel-Serverless-black?style=for-the-badge&logo=vercel)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue?style=for-the-badge&logo=docker)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow?style=for-the-badge&logo=javascript)
 
 </div>
@@ -15,237 +16,203 @@
 
 ## 📑 Tabla de Contenidos
 
-1.  [Introducción y Arquitectura](#-introducción-y-arquitectura)
-2.  [Instalación y Configuración](#-instalación-y-configuración)
-3.  [Anatomía del Código (Paso a Paso)](#-anatomía-del-código-guía-de-construcción)
-    *   [1. Configuración del Proyecto (`package.json`)](#1-configuración-del-proyecto-packagejson)
-    *   [2. El Backend Serverless (`api/`)](#2-el-backend-serverless-api)
-    *   [3. El Servidor de Desarrollo (`dev-server.js`)](#3-el-servidor-de-desarrollo-dev-serverjs)
-    *   [4. El Frontend (`script.js`)](#4-el-frontend-scriptjs)
-4.  [Guía de Extensibilidad (Añadir nuevas APIs)](#-guía-de-extensibilidad)
-5.  [Despliegue](#-despliegue)
+1.  [🧐 Planteamiento del Proyecto](#-planteamiento-del-proyecto)
+2.  [🛠️ Tecnologías y Conceptos](#-tecnologías-y-conceptos-clave)
+3.  [🚀 Instalación Paso a Paso](#-instalación-paso-a-paso)
+4.  [💡 Guía de Uso](#-guía-de-uso)
+5.  [🧬 Anatomía del Código (Manual Técnico)](#-anatomía-del-código-explicación-técnica)
+6.  [🔌 Guía de Extensibilidad](#-guía-de-extensibilidad)
+7.  [☁️ Despliegue](#-despliegue)
+8.  [🤝 Contribución](#-contribución)
 
 ---
 
-## 🏛 Introducción y Arquitectura
+## 🧐 Planteamiento del Proyecto
 
-**El Problema:** Al crear aplicaciones web que consumen APIs de terceros (Noticias, Cine, Clima), insertar las claves secretas (`API_KEYS`) directamente en el código JavaScript del navegador es un grave error de seguridad. Cualquiera podría robarlas.
+### El Problema
+En el desarrollo web moderno, a menudo necesitamos consumir datos de APIs externas (como noticias, clima o películas). Un error común de principiante es hacer estas llamadas directamente desde el navegador (Frontend).
+*   **Riesgo:** Al hacerlo, expones tus **API Keys** (claves privadas) en el código fuente. Cualquiera puede verlas, robarlas y usar tu cuota o generar costos a tu nombre.
+*   **Desafío:** ¿Cómo mostramos datos en tiempo real de forma segura sin exponer nuestras credenciales?
 
-**La Solución (Arquitectura Proxy):**
-Implementamos una arquitectura donde el **Frontend** nunca habla directamente con la API externa.
-1.  El Frontend pide datos a *nuestro* Backend (`/api/news`).
-2.  Nuestro Backend (seguro en el servidor) inyecta la clave secreta y pide los datos a `NewsData.io`.
-3.  Nuestro Backend devuelve los datos limpios al Frontend.
+### La Solución: JPV News
+Hemos creado una arquitectura de **Proxy Inverso** o "Backend-for-Frontend":
+1.  **Frontend Seguro:** El navegador solo habla con *nuestro* servidor interno.
+2.  **Intermediario (Backend):** Nuestro servidor (Node.js) recibe la petición, le adjunta la credencial secreta y llama a la API externa.
+3.  **Resultado:** El usuario ve las noticias, pero nunca tiene acceso a las claves que las obtuvieron.
 
 ---
 
-## 🚀 Instalación y Configuración
+## 🛠️ Tecnologías y Conceptos Clave
 
-### Prerrequisitos
-*   **Node.js** (v18 o superior).
-*   **Git** instalado.
+Para entender este proyecto, definamos las herramientas que usamos:
 
-### Paso 1: Clonar y Preparar
+### 🟢 Node.js (El Motor)
+*   **¿Qué es?**: Un entorno que nos permite ejecutar JavaScript fuera del navegador (en el servidor).
+*   **¿Por qué lo usamos?**: Para construir nuestro Backend seguro y manejar las claves secretas lejos de los ojos del usuario.
+
+### 🚂 Express.js (El Enrutador)
+*   **¿Qué es?**: Un framework minimalista para Node.js.
+*   **Función**: Organiza las "rutas" de nuestra aplicación. Si el usuario pide `/api/news`, Express sabe qué función ejecutar.
+
+### 📡 Axios (El Mensajero)
+*   **¿Qué es?**: Una librería para hacer peticiones HTTP (como `fetch` pero más potente).
+*   **Uso**: Es el encargado de viajar desde nuestro servidor hasta *NewsData.io* o *TMDB* para traer la información.
+
+### ▲ Vercel (La Nube)
+*   **Concepto**: Plataforma de "Serverless Functions".
+*   **Ventaja**: No necesitamos configurar un servidor Linux complejo. Vercel toma nuestros archivos en la carpeta `api/` y los convierte automáticamente en endpoints funcionales en internet.
+
+### 🐳 Docker (El Contenedor)
+*   **¿Qué es?**: Una herramienta que empaqueta nuestra aplicación con todo lo que necesita para funcionar.
+*   **Beneficio**: "Si funciona en mi máquina, funciona en la tuya". Elimina los problemas de versiones y compatibilidad.
+
+---
+
+## 🚀 Instalación Paso a Paso
+
+Sigue esta guía para tener el proyecto corriendo en tu máquina local en minutos.
+
+### 1. Pre-requisitos
+*   [Node.js (v18+)](https://nodejs.org/) instalado.
+*   [Git](https://git-scm.com/) instalado.
+
+### 2. Clonar el Repositorio
+Abre tu terminal y ejecuta:
+
 ```bash
+# Descarga el código fuente
 git clone https://github.com/JUANCITOPENA/News_JPV.git
+
+# Entra al directorio del proyecto
 cd News_JPV
+```
+
+### 3. Instalar Dependencias
+Instala las librerías definidas en `package.json`:
+
+```bash
 npm install
 ```
 
-### Paso 2: Variables de Entorno (`.env`)
-Crea un archivo `.env` en la raíz. Este archivo simula las variables seguras de un servidor.
+### 4. Configuración Segura (`.env`)
+Las claves no se suben a GitHub. Crea un archivo `.env` en la raíz y configura tus secretos:
 
 ```env
 PORT=3000
-NEWS_API_KEY=tu_clave_de_newsdata_io
-TMDB_API_KEY=tu_clave_de_tmdb
+# Obtén tu key en newsdata.io
+NEWS_API_KEY=tu_clave_secreta_aqui
+# Obtén tu key en themoviedb.org
+TMDB_API_KEY=tu_clave_secreta_aqui
 ```
 
-### Paso 3: Ejecución
+### 5. Iniciar Servidor
 ```bash
-# Modo Desarrollo (Usa dev-server.js)
 npm start
-
-# Modo Tests
-npm test
 ```
+Verás: `✅ Servidor de desarrollo listo en http://localhost:3000`
 
 ---
 
-## 🧬 Anatomía del Código (Guía de Construcción)
+## 💡 Guía de Uso
 
-A continuación, explicamos cada componente vital del sistema. Puedes usar esto para reconstruir el proyecto o entender cómo modificarlo.
+1.  **Noticias**: Navega por las pestañas "Tecnología", "Deportes", etc. El sistema cargará las últimas novedades.
+2.  **Cine**: Haz clic en la sección de Cine para ver películas en cartelera.
+3.  **Búsqueda**: Usa la barra superior para buscar temas específicos (ej: "Bitcoin", "Marvel").
 
-### 1. Configuración del Proyecto (`package.json`)
-Este archivo define la identidad del proyecto y sus dependencias.
+---
 
-```json
-{
-  "type": "module",  // Permite usar 'import' en lugar de 'require'
-  "scripts": {
-    "start": "node dev-server.js", // Arranca nuestro servidor local
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
-  },
-  "dependencies": {
-    "axios": "^1.7.2",   // Cliente HTTP para hacer peticiones
-    "dotenv": "^16.4.5", // Carga las variables del .env
-    "express": "^4.19.2" // Servidor web ligero
-  }
-}
-```
+## 🧬 Anatomía del Código (Explicación Técnica)
 
-### 2. El Backend Serverless (`api/`)
-En Vercel, cualquier archivo dentro de `api/` se convierte en una función en la nube.
+Aquí desglosamos cómo está construido el sistema archivo por archivo.
 
-#### Archivo: `api/news.js`
-Este es el "Proxy". Recibe la petición del usuario, añade la llave secreta y consulta a la fuente real.
+### `package.json` (El DNI del proyecto)
+Define los comandos y dependencias.
+*   `"type": "module"`: Nos permite usar la sintaxis moderna `import/export`.
+*   `"start": "node dev-server.js"`: Indica qué archivo arranca el servidor.
+
+### `api/news.js` (Serverless Function)
+Este archivo es el corazón de la seguridad.
 
 ```javascript
 import axios from 'axios';
 
 export default async function handler(req, res) {
-    // 1. Extraemos parámetros del frontend (categoría, búsqueda)
-    const { category, q } = req.query;
+    // Recibe la petición del Frontend
+    const { category } = req.query;
 
-    try {
-        // 2. Hacemos la petición REAL a NewsData.io PROTEGIENDO la API Key
-        // La key viene de process.env, el usuario nunca la ve.
-        const response = await axios.get('https://newsdata.io/api/1/news', {
-            params: {
-                apikey: process.env.NEWS_API_KEY, // <--- AQUÍ ESTÁ EL SECRETO
-                language: 'es',
-                category: category,
-                q: q
-            }
-        });
+    // Realiza la petición segura a la API externa
+    // process.env.NEWS_API_KEY es invisible para el usuario
+    const response = await axios.get('https://newsdata.io/api/1/news', {
+        params: { apikey: process.env.NEWS_API_KEY, category }
+    });
 
-        // 3. Devolvemos los datos limpios al frontend
-        res.status(200).json(response.data);
-
-    } catch (error) {
-        // Manejo de errores robusto
-        res.status(500).json({ error: 'Error al obtener noticias' });
-    }
+    // Devuelve solo los datos, sin exponer la key
+    res.json(response.data);
 }
 ```
 
-### 3. El Servidor de Desarrollo (`dev-server.js`)
-Como Vercel ejecuta las funciones `api/` automáticamente en la nube, necesitamos simular ese comportamiento en nuestra computadora local. Para eso sirve este archivo.
+### `dev-server.js` (Simulador Local)
+Vercel ejecuta `api/` automáticamente en la nube, pero en tu PC necesitamos este archivo para simularlo. Usa Express para crear un servidor web local que "escucha" en el puerto 3000.
 
-```javascript
-import express from 'express';
-import dotenv from 'dotenv';
-import newsHandler from './api/news.js'; // Importamos la función
-
-dotenv.config(); // Cargamos el .env
-
-const app = express();
-
-// Servimos los archivos estáticos (html, css, js)
-app.use(express.static('.'));
-
-// SIMULAMOS la ruta de Vercel
-// Cuando alguien vaya a /api/news, ejecutamos nuestro handler
-app.get('/api/news', newsHandler);
-
-app.listen(3000, () => console.log('Servidor corriendo en http://localhost:3000'));
-```
-
-### 4. El Frontend (`script.js`)
-La lógica que corre en el navegador del usuario.
-
-```javascript
-// Configuración: No llamamos a newsdata.io, llamamos a NUESTRO backend
-const NEWS_ENDPOINT = '/api/news'; 
-
-async function fetchNews(category) {
-    try {
-        // Petición a nuestro propio servidor
-        const res = await fetch(`${NEWS_ENDPOINT}?category=${category}`);
-        const data = await res.json();
-
-        // Renderizado (simplificado)
-        const container = document.getElementById('news-container');
-        container.innerHTML = data.results.map(article => `
-            <div class="card">
-                <h3>${article.title}</h3>
-                <p>${article.description}</p>
-            </div>
-        `).join('');
-
-    } catch (error) {
-        console.error("Error cargando noticias:", error);
-    }
-}
-```
+### `script.js` (Lógica Frontend)
+Maneja la interacción con el usuario.
+*   **`fetchNews()`**: No llama a `newsdata.io`. Llama a `/api/news`.
+*   **Gestión del DOM**: Recibe el JSON y crea las tarjetas HTML dinámicamente.
 
 ---
 
 ## 🔌 Guía de Extensibilidad
 
-¿Quieres agregar una nueva sección, por ejemplo, **Clima**? Sigue estos pasos:
+**Reto:** ¿Quieres agregar una sección de **Criptomonedas**?
 
-### Paso 1: Crear la Ruta de API
-Crea un archivo `api/weather.js`:
+1.  **Backend (`api/crypto.js`)**:
+    Crea un nuevo archivo en `api/` que consulte a una API como CoinGecko.
+    ```javascript
+    export default async function handler(req, res) {
+        const data = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+        res.json(data.data);
+    }
+    ```
 
-```javascript
-// api/weather.js
-import axios from 'axios';
+2.  **Registro (`dev-server.js`)**:
+    Importa y usa la nueva ruta.
+    ```javascript
+    import cryptoHandler from './api/crypto.js';
+    app.get('/api/crypto', cryptoHandler);
+    ```
 
-export default async function handler(req, res) {
-    const { city } = req.query;
-    const apiKey = process.env.WEATHER_API_KEY; // Recuerda agregar esto al .env
-    
-    const data = await axios.get(`https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}`);
-    res.status(200).json(data.data);
-}
-```
-
-### Paso 2: Registrar en `dev-server.js` (Solo para local)
-Abre `dev-server.js` y añade:
-```javascript
-import weatherHandler from './api/weather.js';
-app.get('/api/weather', weatherHandler);
-```
-
-### Paso 3: Consumir en Frontend (`script.js`)
-```javascript
-async function getWeather() {
-    const res = await fetch('/api/weather?city=Madrid');
-    const data = await res.json();
-    console.log("Temperatura:", data.current.temp_c);
-}
-```
+3.  **Frontend (`script.js`)**:
+    Haz un `fetch('/api/crypto')` y muestra el precio.
 
 ---
 
 ## ☁️ Despliegue
 
 ### Docker
-El proyecto incluye un `Dockerfile` optimizado.
+Para entornos aislados o servidores Linux tradicionales.
 ```bash
 docker build -t jpv-news .
 docker run -p 3000:3000 --env-file .env jpv-news
 ```
 
-### Vercel (Producción)
+### Vercel (Recomendado)
 1.  Sube tu código a GitHub.
-2.  Impórtalo en Vercel.
-3.  **Crucial:** En Vercel > Settings > Environment Variables, agrega `NEWS_API_KEY` y `TMDB_API_KEY`.
-4.  Vercel detectará automáticamente la carpeta `api/` y no necesitas configurar nada más.
+2.  Importa el proyecto en Vercel.
+3.  **Importante**: Agrega tus Variables de Entorno en el panel de Vercel.
+4.  ¡Listo! Vercel detecta la carpeta `api` y despliega automáticamente.
 
 ---
 
 ## 🤝 Contribución
 
-1.  Hacer Fork del repositorio.
-2.  Crear rama (`git checkout -b feature/AmazingFeature`).
-3.  Commit (`git commit -m 'Add some AmazingFeature'`).
-4.  Push (`git push origin feature/AmazingFeature`).
-5.  Abrir Pull Request.
+¡Queremos tu ayuda!
+1.  **Fork** este repo.
+2.  Crea una rama (`git checkout -b feature/nueva-idea`).
+3.  Commit y Push.
+4.  Abre un **Pull Request**.
 
 ---
 
-## 📜 Licencia
-
-Distribuido bajo la licencia MIT. Ver `LICENSE` para más información.
+<div align="center">
+  <sub>Documentación generada con fines educativos para JPV News.</sub>
+</div>
