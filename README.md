@@ -1,6 +1,6 @@
-# 📰 JPV News: Portal de Noticias y Cine Inteligente
+# 📰 JPV News: Manual Maestro de Ingeniería y Desarrollo
 
-![Banner](https://capsule-render.vercel.app/api?type=waving&color=000000&height=250&section=header&text=JPV%20News&fontSize=90&animation=fadeIn&fontAlignY=38&desc=Manual%20de%20Ingeniería%20y%20Desarrollo&descAlignY=51&descAlign=50)
+![Banner](https://capsule-render.vercel.app/api?type=waving&color=000000&height=250&section=header&text=JPV%20News&fontSize=90&animation=fadeIn&fontAlignY=38&desc=Manual%20Interactivo%20Full%20Stack&descAlignY=51&descAlign=50)
 
 <div align="center">
 
@@ -9,210 +9,302 @@
 ![Vercel](https://img.shields.io/badge/Vercel-Serverless-black?style=for-the-badge&logo=vercel)
 ![Docker](https://img.shields.io/badge/Docker-Ready-blue?style=for-the-badge&logo=docker)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow?style=for-the-badge&logo=javascript)
+![License](https://img.shields.io/badge/Licencia-MIT-yellow?style=for-the-badge)
 
 </div>
 
 ---
 
+Este documento es un manual completo. Te guiará desde la creación de cuentas para obtener API Keys, pasando por la instalación del entorno, hasta la explicación línea por línea del código fuente.
+
 ## 📑 Tabla de Contenidos
 
-1.  [🧐 Planteamiento del Proyecto](#-planteamiento-del-proyecto)
-2.  [🛠️ Tecnologías y Conceptos](#-tecnologías-y-conceptos-clave)
-3.  [🚀 Instalación Paso a Paso](#-instalación-paso-a-paso)
-4.  [💡 Guía de Uso](#-guía-de-uso)
-5.  [🧬 Anatomía del Código (Manual Técnico)](#-anatomía-del-código-explicación-técnica)
-6.  [🔌 Guía de Extensibilidad](#-guía-de-extensibilidad)
-7.  [☁️ Despliegue](#-despliegue)
-8.  [🤝 Contribución](#-contribución)
+1.  [🧐 Contexto y Arquitectura](#-contexto-y-arquitectura)
+2.  [🔑 Fase 1: Obtención de Credenciales (API Keys)](#-fase-1-obtención-de-credenciales-api-keys)
+3.  [💻 Fase 2: Configuración del Entorno Local](#-fase-2-configuración-del-entorno-local)
+4.  [⚙️ Fase 3: Instalación y Configuración](#-fase-3-instalación-y-configuración)
+5.  [📘 Fase 4: Manual de Código (Estructura y Desarrollo)](#-fase-4-manual-de-código-estructura-y-desarrollo)
+    *   [Estructura del Proyecto](#estructura-del-proyecto)
+    *   [Backend y API Proxy](#backend-y-api-proxy)
+    *   [Frontend y Lógica](#frontend-y-lógica)
+6.  [🧪 Fase 5: Testing y Calidad](#-fase-5-testing-y-calidad)
+7.  [☁️ Fase 6: Despliegue (Docker y Vercel)](#-fase-6-despliegue-docker-y-vercel)
+8.  [🔌 Guía de Extensibilidad](#-guía-de-extensibilidad)
 
 ---
 
-## 🧐 Planteamiento del Proyecto
+## 🧐 Contexto y Arquitectura
 
 ### El Problema
-En el desarrollo web moderno, a menudo necesitamos consumir datos de APIs externas (como noticias, clima o películas). Un error común de principiante es hacer estas llamadas directamente desde el navegador (Frontend).
-*   **Riesgo:** Al hacerlo, expones tus **API Keys** (claves privadas) en el código fuente. Cualquiera puede verlas, robarlas y usar tu cuota o generar costos a tu nombre.
-*   **Desafío:** ¿Cómo mostramos datos en tiempo real de forma segura sin exponer nuestras credenciales?
+Desarrollar aplicaciones web modernas requiere conectar con el mundo exterior (APIs). Sin embargo, conectar un Frontend (HTML/JS) directamente a una API pagada o privada expone tus **Credenciales (API Keys)**. Cualquier usuario puede dar "Click derecho -> Inspeccionar" y robar tu llave.
 
-### La Solución: JPV News
-Hemos creado una arquitectura de **Proxy Inverso** o "Backend-for-Frontend":
-1.  **Frontend Seguro:** El navegador solo habla con *nuestro* servidor interno.
-2.  **Intermediario (Backend):** Nuestro servidor (Node.js) recibe la petición, le adjunta la credencial secreta y llama a la API externa.
-3.  **Resultado:** El usuario ve las noticias, pero nunca tiene acceso a las claves que las obtuvieron.
+### La Solución: Arquitectura Proxy Serverless
+Utilizamos un diseño de **Backend-for-Frontend (BFF)**.
+1.  **Cliente (Navegador):** Solo conoce nuestro servidor (`/api/news`).
+2.  **Servidor (Node.js/Vercel):** Guarda el secreto en variables de entorno, recibe la petición del cliente, le pega su etiqueta de seguridad y llama a la API real.
+3.  **Seguridad:** El secreto nunca sale del servidor.
 
 ---
 
-## 🛠️ Tecnologías y Conceptos Clave
+## 🔑 Fase 1: Obtención de Credenciales (API Keys)
 
-Para entender este proyecto, definamos las herramientas que usamos:
+Antes de tocar una línea de código, necesitas "las llaves del reino".
 
-### 🟢 Node.js (El Motor)
-*   **¿Qué es?**: Un entorno que nos permite ejecutar JavaScript fuera del navegador (en el servidor).
-*   **¿Por qué lo usamos?**: Para construir nuestro Backend seguro y manejar las claves secretas lejos de los ojos del usuario.
+### 1. NewsData.io (Noticias)
+Esta API nos provee las noticias globales.
+1.  Ve a [NewsData.io](https://newsdata.io/).
+2.  Haz clic en **"Sign Up"** y crea una cuenta gratuita.
+3.  Ve al **Dashboard**.
+4.  Copia la cadena de texto que dice **"API KEY"**.
+5.  *Guárdala, la usaremos pronto.*
 
-### 🚂 Express.js (El Enrutador)
-*   **¿Qué es?**: Un framework minimalista para Node.js.
-*   **Función**: Organiza las "rutas" de nuestra aplicación. Si el usuario pide `/api/news`, Express sabe qué función ejecutar.
-
-### 📡 Axios (El Mensajero)
-*   **¿Qué es?**: Una librería para hacer peticiones HTTP (como `fetch` pero más potente).
-*   **Uso**: Es el encargado de viajar desde nuestro servidor hasta *NewsData.io* o *TMDB* para traer la información.
-
-### ▲ Vercel (La Nube)
-*   **Concepto**: Plataforma de "Serverless Functions".
-*   **Ventaja**: No necesitamos configurar un servidor Linux complejo. Vercel toma nuestros archivos en la carpeta `api/` y los convierte automáticamente en endpoints funcionales en internet.
-
-### 🐳 Docker (El Contenedor)
-*   **¿Qué es?**: Una herramienta que empaqueta nuestra aplicación con todo lo que necesita para funcionar.
-*   **Beneficio**: "Si funciona en mi máquina, funciona en la tuya". Elimina los problemas de versiones y compatibilidad.
+### 2. TMDB (Cine)
+Esta API nos da la cartelera de películas e imágenes.
+1.  Ve a [TheMovieDB.org](https://www.themoviedb.org/).
+2.  Regístrate y verifica tu email.
+3.  Ve a **Configuración** -> **API** (en la barra lateral izquierda).
+4.  Haz clic en **"Solicitar"** (Request) -> **"Developer"**.
+5.  Llena el formulario (puedes poner que es para un proyecto personal educativo).
+6.  Copia la **"API Key (v3 auth)"**.
 
 ---
 
-## 🚀 Instalación Paso a Paso
+## 💻 Fase 2: Configuración del Entorno Local
 
-Sigue esta guía para tener el proyecto corriendo en tu máquina local en minutos.
+Prepara tu computadora como un ingeniero de software profesional.
 
-### 1. Pre-requisitos
-*   [Node.js (v18+)](https://nodejs.org/) instalado.
-*   [Git](https://git-scm.com/) instalado.
+1.  **Descargar Node.js**: Es el motor que moverá nuestro código.
+    *   [Descargar aquí (Versión LTS recomendada)](https://nodejs.org/).
+    *   Instala con "Siguiente, Siguiente, Siguiente".
+2.  **Descargar Git**: Para gestionar el código.
+    *   [Descargar Git SCM](https://git-scm.com/).
+3.  **Editor de Código**:
+    *   Recomendamos [Visual Studio Code](https://code.visualstudio.com/).
 
-### 2. Clonar el Repositorio
-Abre tu terminal y ejecuta:
+---
 
+## ⚙️ Fase 3: Instalación y Configuración
+
+Sigue estos comandos paso a paso en tu terminal.
+
+### 1. Clonar el Proyecto
+Trae el código desde GitHub a tu carpeta local.
 ```bash
-# Descarga el código fuente
 git clone https://github.com/JUANCITOPENA/News_JPV.git
-
-# Entra al directorio del proyecto
 cd News_JPV
 ```
 
-### 3. Instalar Dependencias
-Instala las librerías definidas en `package.json`:
-
+### 2. Instalar Dependencias
+Leemos el `package.json` e instalamos las librerías necesarias.
 ```bash
 npm install
 ```
+*Esto creará la carpeta `node_modules`. Nunca la toques manualmente.*
 
-### 4. Configuración Segura (`.env`)
-Las claves no se suben a GitHub. Crea un archivo `.env` en la raíz y configura tus secretos:
+### 3. Gestión de Credenciales (`.env`)
+Configuramos la seguridad.
+1.  Copia el archivo de ejemplo:
+    ```bash
+    # En Windows (Powershell)
+    copy .env.example .env
+    # En Mac/Linux
+    cp .env.example .env
+    ```
+2.  Abre el archivo `.env` con tu editor y pega las API Keys que obtuviste en la Fase 1.
 
 ```env
 PORT=3000
-# Obtén tu key en newsdata.io
-NEWS_API_KEY=tu_clave_secreta_aqui
-# Obtén tu key en themoviedb.org
-TMDB_API_KEY=tu_clave_secreta_aqui
+NEWS_API_KEY=pegale_aqui_tu_clave_de_newsdata
+TMDB_API_KEY=pegale_aqui_tu_clave_de_tmdb
 ```
 
-### 5. Iniciar Servidor
+### 4. Iniciar Aplicación
 ```bash
 npm start
 ```
-Verás: `✅ Servidor de desarrollo listo en http://localhost:3000`
+Abre tu navegador en `http://localhost:3000`.
 
 ---
 
-## 💡 Guía de Uso
+## 📘 Fase 4: Manual de Código (Estructura y Desarrollo)
 
-1.  **Noticias**: Navega por las pestañas "Tecnología", "Deportes", etc. El sistema cargará las últimas novedades.
-2.  **Cine**: Haz clic en la sección de Cine para ver películas en cartelera.
-3.  **Búsqueda**: Usa la barra superior para buscar temas específicos (ej: "Bitcoin", "Marvel").
+Aquí desglosamos la ingeniería del proyecto. Entender esto te permitirá modificarlo a tu gusto.
 
----
+### Estructura del Proyecto
 
-## 🧬 Anatomía del Código (Explicación Técnica)
+```
+JPV-NEWS/
+├── .env                  # 🔐 SECRETOS (No subir a GitHub)
+├── dev-server.js         # 🛠️ Servidor Local (Simulador Vercel)
+├── package.json          # 📦 Configuración y Dependencias
+├── api/                  # ☁️ SERVERLESS FUNCTIONS (Backend)
+│   ├── news.js           # Proxy Noticias
+│   ├── cinema.js         # Proxy Cine
+│   └── summary.js        # Proxy IA
+├── img/                  # 🎨 Recursos visuales
+├── tests/                # 🧪 Pruebas Unitarias
+├── script.js             # ⚡ Lógica Frontend (Cliente)
+├── style.css             # 🎨 Estilos Visuales
+└── index.html            # 🦴 Estructura HTML
+```
 
-Aquí desglosamos cómo está construido el sistema archivo por archivo.
+### Backend y API Proxy
 
-### `package.json` (El DNI del proyecto)
-Define los comandos y dependencias.
-*   `"type": "module"`: Nos permite usar la sintaxis moderna `import/export`.
-*   `"start": "node dev-server.js"`: Indica qué archivo arranca el servidor.
-
-### `api/news.js` (Serverless Function)
-Este archivo es el corazón de la seguridad.
+#### `api/news.js` (Código Explicado)
+Este archivo intercepta la petición del usuario para proteger la API Key.
 
 ```javascript
 import axios from 'axios';
 
+// La función principal que Vercel ejecuta cuando alguien llama a /api/news
 export default async function handler(req, res) {
-    // Recibe la petición del Frontend
-    const { category } = req.query;
+    // 1. Obtenemos los filtros que envió el frontend
+    const { category, q, page } = req.query;
 
-    // Realiza la petición segura a la API externa
-    // process.env.NEWS_API_KEY es invisible para el usuario
-    const response = await axios.get('https://newsdata.io/api/1/news', {
-        params: { apikey: process.env.NEWS_API_KEY, category }
-    });
+    // 2. Definimos las claves (podemos tener varias para evitar límites)
+    const keys = [process.env.NEWS_API_KEY, process.env.NEWS_API_KEY_2].filter(k => k);
 
-    // Devuelve solo los datos, sin exponer la key
-    res.json(response.data);
+    try {
+        // 3. Hacemos la llamada a la API externa (NewsData.io)
+        // NOTA: Aquí es donde inyectamos la 'apikey' segura.
+        const response = await axios.get('https://newsdata.io/api/1/news', {
+            params: {
+                apikey: keys[0], // Usamos la primera llave disponible
+                language: 'es',
+                category: category,
+                q: q
+            }
+        });
+
+        // 4. Respondemos al Frontend con los datos limpios
+        res.status(200).json(response.data);
+
+    } catch (error) {
+        // 5. Manejo de errores
+        console.error("Error en API News:", error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
 }
 ```
 
-### `dev-server.js` (Simulador Local)
-Vercel ejecuta `api/` automáticamente en la nube, pero en tu PC necesitamos este archivo para simularlo. Usa Express para crear un servidor web local que "escucha" en el puerto 3000.
+#### `dev-server.js` (El Simulador)
+Vercel corre las funciones `api/` automáticamente en la nube. En local, necesitamos simular eso.
 
-### `script.js` (Lógica Frontend)
-Maneja la interacción con el usuario.
-*   **`fetchNews()`**: No llama a `newsdata.io`. Llama a `/api/news`.
-*   **Gestión del DOM**: Recibe el JSON y crea las tarjetas HTML dinámicamente.
+```javascript
+import express from 'express';
+import dotenv from 'dotenv';
+import newsHandler from './api/news.js'; // Importamos el handler real
+
+dotenv.config(); // Cargar variables de entorno
+
+const app = express();
+const port = 3000;
+
+app.use(express.static('.')); // Servir archivos frontend (html, css)
+
+// RUTA MÁGICA: Conectamos la URL /api/news con nuestra función
+app.get('/api/news', newsHandler);
+
+app.listen(port, () => {
+    console.log(`✅ Servidor listo en http://localhost:${port}`);
+});
+```
+
+### Frontend y Lógica
+
+#### `script.js` (Fragmento Clave)
+Cómo el navegador pide datos sin saber la API Key.
+
+```javascript
+// Configuración: Apuntamos a NUESTRO backend, no a la API externa
+const NEWS_ENDPOINT = '/api/news';
+
+async function loadNews() {
+    try {
+        // Hacemos fetch a nuestro servidor local o Vercel
+        const response = await fetch(`${NEWS_ENDPOINT}?category=technology`);
+        const data = await response.json();
+
+        // Renderizamos los datos en el HTML
+        renderArticles(data.results);
+    } catch (error) {
+        showError("No se pudieron cargar las noticias");
+    }
+}
+```
+
+---
+
+## 🧪 Fase 5: Testing y Calidad
+
+Un buen ingeniero prueba su código. Hemos incluido **Jest** para pruebas unitarias.
+
+### Ejecutar Pruebas
+```bash
+npm test
+```
+
+### ¿Qué estamos probando? (`tests/basic.test.js`)
+Validamos que el entorno no esté "roto".
+1.  Verificamos que `NODE_ENV` exista (importante para despliegue).
+2.  Verificamos que el `package.json` tenga los scripts correctos.
+
+---
+
+## ☁️ Fase 6: Despliegue (Docker y Vercel)
+
+Llevando tu proyecto al mundo real.
+
+### Opción A: Vercel (Recomendada)
+La forma más rápida y moderna.
+1.  Sube tu código a GitHub.
+2.  Ve a [Vercel.com](https://vercel.com) -> "Add New Project".
+3.  Importa `News_JPV`.
+4.  **Paso Crítico:** En "Environment Variables", agrega:
+    *   Key: `NEWS_API_KEY`, Value: `tu_clave_real`
+    *   Key: `TMDB_API_KEY`, Value: `tu_clave_real`
+5.  **Deploy**. Vercel detectará la carpeta `api/` automáticamente.
+
+### Opción B: Docker
+Para correr en cualquier servidor Linux/AWS/Azure.
+
+1.  **Construir imagen:**
+    ```bash
+    docker build -t jpv-news .
+    ```
+2.  **Correr contenedor:**
+    ```bash
+    docker run -p 3000:3000 --env-file .env jpv-news
+    ```
 
 ---
 
 ## 🔌 Guía de Extensibilidad
 
-**Reto:** ¿Quieres agregar una sección de **Criptomonedas**?
+**Caso de Uso:** Agregar cotización del **Dólar**.
 
-1.  **Backend (`api/crypto.js`)**:
-    Crea un nuevo archivo en `api/` que consulte a una API como CoinGecko.
+1.  **Crear Handler Backend (`api/dolar.js`):**
     ```javascript
+    import axios from 'axios';
     export default async function handler(req, res) {
-        const data = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+        const data = await axios.get('https://api.exchangerate-api.com/v4/latest/USD');
         res.json(data.data);
     }
     ```
-
-2.  **Registro (`dev-server.js`)**:
-    Importa y usa la nueva ruta.
+2.  **Registrar en Local (`dev-server.js`):**
     ```javascript
-    import cryptoHandler from './api/crypto.js';
-    app.get('/api/crypto', cryptoHandler);
+    import dolarHandler from './api/dolar.js';
+    app.get('/api/dolar', dolarHandler);
     ```
-
-3.  **Frontend (`script.js`)**:
-    Haz un `fetch('/api/crypto')` y muestra el precio.
-
----
-
-## ☁️ Despliegue
-
-### Docker
-Para entornos aislados o servidores Linux tradicionales.
-```bash
-docker build -t jpv-news .
-docker run -p 3000:3000 --env-file .env jpv-news
-```
-
-### Vercel (Recomendado)
-1.  Sube tu código a GitHub.
-2.  Importa el proyecto en Vercel.
-3.  **Importante**: Agrega tus Variables de Entorno en el panel de Vercel.
-4.  ¡Listo! Vercel detecta la carpeta `api` y despliega automáticamente.
+3.  **Consumir en Frontend:**
+    `fetch('/api/dolar').then(...)`
 
 ---
 
-## 🤝 Contribución
+## 📜 Licencia
 
-¡Queremos tu ayuda!
-1.  **Fork** este repo.
-2.  Crea una rama (`git checkout -b feature/nueva-idea`).
-3.  Commit y Push.
-4.  Abre un **Pull Request**.
-
----
+Este proyecto está bajo la licencia **MIT**. Eres libre de usarlo para aprender, copiar o vender, siempre y cuando des crédito.
 
 <div align="center">
-  <sub>Documentación generada con fines educativos para JPV News.</sub>
+  <sub>Documentación generada automáticamente por Gemini Assistant para JPV News.</sub>
 </div>
