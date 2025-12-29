@@ -1,0 +1,21 @@
+{
+  "name": "JPV News & Cinema",
+  "short_name": "JPV News",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#00f3ff",
+  "description": "Tu portal de noticias y cine con estilo Cyberpunk.",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/fluency/192/news.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/fluency/512/news.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

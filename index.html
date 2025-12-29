@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPV News & Cinema | Ultimate</title>
+
+    <!-- PWA y SEO -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <meta name="description" content="Portal de noticias y cine con estilo Cyberpunk. Actualidad y entretenimiento en tiempo real.">
+
+    <!-- FAVICON (Solución al error 404) -->
+    <!-- Usando tu imagen local -->
+    <link rel="icon" href="img/JPV News.png" type="image/png">
+
+    <!-- PRELOAD de fuentes (Solución al aviso de rendimiento) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- LIBRERÍAS CSS Y FUENTES -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&family=Merriweather:wght@300;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- TU CSS PERSONALIZADO -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="navbar navbar-expand-xl sticky-top shadow-lg border-bottom border-dark-subtle py-3">
+        <div class="container-fluid custom-container">
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2 cursor-pointer" onclick="window.app.route('top')">
+                <span class="badge bg-primary rounded-1 p-2"><i class="fas fa-bolt"></i> JPV</span> <span class="brand-text">NEWS</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav me-auto mb-2 mb-xl-0 gap-1" id="category-menu"></ul>
+                <div class="d-flex align-items-center gap-3 flex-wrap actions-wrapper">
+                    <button class="btn btn-outline-danger btn-sm rounded-pill d-flex align-items-center gap-2" onclick="window.app.loadFavorites()">
+                        <i class="fas fa-heart"></i> <span id="fav-label">Favoritos</span>
+                    </button>
+                    <div id="movie-filters-container" class="d-none">
+                        <select class="form-select form-select-sm bg-dark text-light border-secondary" onchange="window.app.filterMovies(this.value)">
+                            <option value="now_playing">🎬 Estrenos</option>
+                            <option value="popular">🔥 Populares</option>
+                            <option value="top_rated">⭐ Top Rated</option>
+                        </select>
+                    </div>
+                    <form class="d-flex position-relative search-form" onsubmit="event.preventDefault(); window.app.search(this.querySelector('input').value)">
+                        <input id="search-input" class="form-control form-control-sm ps-3 pe-5 rounded-pill bg-dark text-light border-secondary" type="search" placeholder="Buscar..." required>
+                        <button class="btn position-absolute top-0 end-0 btn-sm text-secondary pe-3" type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-globe"></i> <span id="current-lang-label">ES</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                            <li><a class="dropdown-item" href="#" onclick="window.app.setLanguage('es')">🇪🇸 Español</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="window.app.setLanguage('en')">🇺🇸 English</a></li>
+                        </ul>
+                    </div>
+                    <button class="btn btn-sm btn-outline-warning rounded-circle" id="themeToggle"><i class="fas fa-sun"></i></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid custom-container py-5 min-vh-100">
+        <h2 id="section-title" class="mb-4 border-start border-4 border-primary ps-3 d-none"></h2>
+        <div id="news-container">
+            <div class="d-flex flex-column justify-content-center align-items-center py-5">
+                <div class="spinner-border text-info" style="width: 3rem; height: 3rem;" role="status"></div>
+                <p class="mt-3 text-muted blink">Iniciando sistema...</p>
+            </div>
+        </div>
+        <div id="pagination-wrapper" class="text-center mt-5 d-none">
+            <button id="btn-load-more" class="btn btn-cyber px-5 py-3 rounded-pill fw-bold" onclick="window.app.nextPage()">
+                CARGAR MÁS DATOS <i class="fas fa-arrow-down ms-2"></i>
+            </button>
+        </div>
+    </main>
+
+    <footer class="bg-black text-secondary text-center py-4 border-top border-dark mt-auto">
+        <div class="container">
+            <small>&copy; 2025 JPV News. AI Powered.</small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+    <!-- Script PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('Service Worker registrado:', registration))
+                    .catch(error => console.log('Error al registrar Service Worker:', error));
+            });
+        }
+    </script>
+</body>
+</html>
