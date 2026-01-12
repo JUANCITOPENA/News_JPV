@@ -270,21 +270,25 @@ window.app = {
                 <div class="row justify-content-center">
                     <div class="col-lg-9">
                         <h1 class="display-5 fw-bold mb-3">${item.title}</h1>
-                        <img src="${item.img || FALLBACK_IMGS[0]}" class="img-fluid rounded-3 w-100 mb-4 shadow" style="max-height:500px; object-fit:cover;">
+                        <img src="${item.img || FALLBACK_IMGS[0]}" referrerpolicy="no-referrer" class="img-fluid rounded-3 w-100 mb-4 shadow" style="max-height:500px; object-fit:cover;" onerror="this.src='${FALLBACK_IMGS[0]}'">
                         
                         <div class="d-grid gap-2 mb-4">
-                            <a href="${item.link}" target="_blank" class="btn btn-primary btn-lg w-100">
+                            <a href="${item.link}" target="_blank" class="btn btn-primary btn-lg w-100 shadow-sm">
                                 <i class="fas fa-external-link-alt me-2"></i> Leer noticia completa en la web oficial
                             </a>
                         </div>
 
-                        <div id="ai-box" class="ai-box p-3 border border-info rounded-3 mb-4 bg-info-subtle">
-                            <h5 class="fw-bold text-info-emphasis">🤖 Resumen IA:</h5>
-                            <p class="mb-0">⚠️ <strong>Función en construcción</strong> - Acceso restringido para planes de pago y suscriptores Premium.</p>
+                        <div id="ai-box" class="ai-box p-4 border-0 rounded-4 mb-4 shadow-sm d-none" style="background: linear-gradient(135deg, #e0f7fa 0%, #ffffff 100%); border-left: 5px solid #0dcaf0 !important;">
+                            <h5 class="fw-bold" style="color: #0891b2;">✨ Crónica IA Premium:</h5>
+                            <div id="ai-output" class="mb-0 text-dark" style="line-height: 1.7; font-size: 1.05rem;"></div>
                         </div>
                         
-                        <div class="detail-content bg-body-tertiary p-4 rounded-3 text-justify">
-                            <p class="lead fw-bold">📝 Extracto del artículo:</p>
+                        <button id="ai-btn" class="btn btn-dark w-100 mb-4 py-3 rounded-pill shadow-sm" onclick="window.app.generateAISummary('${uniqueId}')">
+                            <i class="fas fa-magic me-2 text-info"></i> Generar Resumen Inteligente Premium
+                        </button>
+                        
+                        <div class="detail-content bg-body-tertiary p-4 rounded-3">
+                            <p class="lead fw-bold">📝 Extracto original:</p>
                             <p style="text-align: justify; line-height: 1.6;">${item.content || item.desc || 'Contenido no disponible'}</p>
                         </div>
                     </div>
@@ -292,8 +296,39 @@ window.app = {
             </div>`;
     },
 
-    generateAISummary: function() {
-        alert("Esta función está actualmente en mantenimiento y requiere una suscripción activa.");
+    generateAISummary: async function(uniqueId) {
+        const item = state.cache.get(uniqueId);
+        if (!item) return;
+
+        const outputEl = document.getElementById('ai-output');
+        const boxEl = document.getElementById('ai-box');
+        const btn = document.getElementById('ai-btn');
+
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Redactando...`;
+        
+        try {
+            const res = await fetch(SUMMARY_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    text: item.content || item.desc || '', 
+                    title: item.title || '',
+                    lang: state.lang 
+                })
+            });
+            if (!res.ok) throw new Error('AI service failed');
+            const data = await res.json();
+            
+            boxEl.classList.remove('d-none');
+            outputEl.innerHTML = data.summary;
+            btn.style.display = 'none';
+            boxEl.scrollIntoView({ behavior: 'smooth' });
+        } catch (e) {
+            alert("No se pudo conectar con el servicio de IA. Inténtelo más tarde.");
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-magic me-2"></i> Reintentar Resumen`;
+        }
     },
     
     showLoader: function() { document.getElementById('news-container').innerHTML = `<div class="d-flex justify-content-center py-5"><div class="spinner-border text-info"></div></div>`; },
