@@ -258,6 +258,42 @@ window.app = {
         else container.innerHTML = html + cardsHTML + `</div>`;
     },
 
+    formatTextClientSide: function(text) {
+        if (!text) return "Contenido no disponible.";
+        
+        // 1. Limpieza y Corte (aprox 150-200 palabras)
+        let cleanText = text.replace(/<[^>]*>?/gm, ''); // Quitar HTML basura si hay
+        if (cleanText.length > 1200) cleanText = cleanText.substring(0, 1200) + '...';
+
+        // 2. Resaltado de Palabras Clave (Precios, Porcentajes, Mayúsculas Clave)
+        // Resaltar precios (Ej: 10,80€, $500)
+        cleanText = cleanText.replace(/(\d+([.,]\d+)?\s?([€$]|EUR|USD))/g, '<span class="fw-bold text-info">$1</span>');
+        // Resaltar porcentajes
+        cleanText = cleanText.replace(/(\d+([.,]\d+)?\s?%)/g, '<span class="fw-bold text-warning">$1</span>');
+
+        // 3. Dividir en Párrafos (Heurística: cada 3 oraciones aprox)
+        const sentences = cleanText.split('. ');
+        let paragraphs = [];
+        let buffer = "";
+        
+        sentences.forEach((sentence, index) => {
+            buffer += sentence + (sentence.endsWith('.') ? ' ' : '. ');
+            // Crear párrafo cada 3 oraciones o si es la última
+            if ((index + 1) % 3 === 0 || index === sentences.length - 1) {
+                paragraphs.push(buffer.trim());
+                buffer = "";
+            }
+        });
+
+        // 4. Decorar con Emojis
+        const emojis = ['📌', '💡', '🚀', '👉', '🔔', '✅', '📍'];
+        return paragraphs.map((p, i) => {
+            if (p.length < 10) return ''; // Ignorar fragmentos muy cortos
+            const emoji = emojis[i % emojis.length];
+            return `<p class="mb-3"><span class="fs-5 me-2">${emoji}</span>${p}</p>`;
+        }).join('');
+    },
+
     openDetail: async function(uniqueId) {
         const item = state.cache.get(uniqueId);
         if(!item) return;
@@ -265,37 +301,44 @@ window.app = {
         const container = document.getElementById('news-container');
         const t = TRANSLATIONS[state.lang];
         
-        // Limpiar o formatear el extracto real
-        let extracto = item.content || item.desc || 'Descripción no disponible.';
-        // Cortar si es excesivamente largo (opcional, pero ayuda a la estética)
-        if (extracto.length > 800) extracto = extracto.substring(0, 800) + '...';
+        // Aplicar el formato "Pseudo-IA" al contenido
+        const rawContent = item.content || item.desc || '';
+        const formattedContent = this.formatTextClientSide(rawContent);
 
         container.innerHTML = `
             <div class="fade-in">
                 <button class="btn btn-outline-secondary mb-4" onclick="window.app.route('${state.currentCategory}')">${t.back}</button>
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
-                        <!-- Título -->
-                        <h1 class="display-6 fw-bold mb-4 text-dark">${item.title}</h1>
+                        <h1 class="display-6 fw-bold mb-4 text-dark" style="font-family: 'Segoe UI', sans-serif;">${item.title}</h1>
                         
-                        <!-- Imagen -->
                         <div class="position-relative mb-4">
                             <img src="${item.img || FALLBACK_IMGS[0]}" referrerpolicy="no-referrer" class="img-fluid rounded-4 w-100 shadow" style="max-height:450px; object-fit:cover;" onerror="this.src='${FALLBACK_IMGS[0]}'">
                             ${item.source ? `<span class="position-absolute bottom-0 end-0 bg-dark text-white px-3 py-1 m-3 rounded-pill opacity-75 small">${item.source}</span>` : ''}
                         </div>
 
-                        <!-- Botón Fuente (Prominente) -->
+                        <!-- Botón Principal -->
                         <div class="d-grid gap-2 mb-5">
                             <a href="${item.link}" target="_blank" class="btn btn-primary btn-lg rounded-pill shadow-sm py-3 fw-bold">
-                                <i class="fas fa-external-link-alt me-2"></i> Leer Artículo Completo en Fuente Oficial
+                                <i class="fas fa-external-link-alt me-2"></i> Leer Fuente Oficial
                             </a>
                         </div>
                         
-                        <!-- Extracto Estilizado (Sin IA, solo diseño bonito) -->
+                        <!-- Extracto Formateado (Estilo Premium) -->
                         <div class="detail-content bg-white p-4 p-md-5 rounded-4 shadow-sm border border-light">
-                            <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-newspaper me-2 text-primary"></i> Resumen / Extracto:</h5>
-                            <div class="fs-5 text-secondary" style="text-align: justify; line-height: 1.8; font-family: 'Segoe UI', system-ui, sans-serif;">
-                                ${extracto}
+                            <h5 class="fw-bold text-dark mb-4 border-bottom pb-2">
+                                <i class="fas fa-align-left me-2 text-primary"></i> Resumen de la Noticia
+                            </h5>
+                            
+                            <div class="news-body text-secondary" style="text-align: justify; line-height: 1.9; font-size: 1.1rem;">
+                                ${formattedContent}
+                            </div>
+
+                            <!-- Botón Cargar Más (Al final del texto) -->
+                            <div class="mt-5 text-center">
+                                <a href="${item.link}" target="_blank" class="btn btn-outline-dark rounded-pill px-5">
+                                    Cargar Más / Ver Completo <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
                             </div>
                         </div>
                         
