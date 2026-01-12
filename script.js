@@ -230,12 +230,7 @@ window.app = {
         const cardsHTML = items.map(item => {
             const imgUrl = item.img || FALLBACK_IMGS[0];
             const isFav = state.favorites.some(f => f.id === item.id);
-            const safeId = item.id.replace(/"/g, '&quot;');
-
-        const cardsHTML = items.map(item => {
-            const imgUrl = item.img || FALLBACK_IMGS[0];
-            const isFav = state.favorites.some(f => f.id === item.id);
-            // CORRECCIÓN CRÍTICA: Escapar comillas simples y dobles para evitar SyntaxError en onclick
+            // Escapar comillas para evitar errores de sintaxis en onclick
             const safeId = item.id.replace(/"/g, '&quot;').replace(/'/g, "\\'");
 
             return `
