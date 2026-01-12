@@ -264,71 +264,49 @@ window.app = {
 
         const container = document.getElementById('news-container');
         const t = TRANSLATIONS[state.lang];
+        
+        // Limpiar o formatear el extracto real
+        let extracto = item.content || item.desc || 'Descripción no disponible.';
+        // Cortar si es excesivamente largo (opcional, pero ayuda a la estética)
+        if (extracto.length > 800) extracto = extracto.substring(0, 800) + '...';
+
         container.innerHTML = `
             <div class="fade-in">
                 <button class="btn btn-outline-secondary mb-4" onclick="window.app.route('${state.currentCategory}')">${t.back}</button>
                 <div class="row justify-content-center">
-                    <div class="col-lg-9">
-                        <h1 class="display-5 fw-bold mb-3">${item.title}</h1>
-                        <img src="${item.img || FALLBACK_IMGS[0]}" referrerpolicy="no-referrer" class="img-fluid rounded-3 w-100 mb-4 shadow" style="max-height:500px; object-fit:cover;" onerror="this.src='${FALLBACK_IMGS[0]}'">
+                    <div class="col-lg-8">
+                        <!-- Título -->
+                        <h1 class="display-6 fw-bold mb-4 text-dark">${item.title}</h1>
                         
-                        <div class="d-grid gap-2 mb-4">
-                            <a href="${item.link}" target="_blank" class="btn btn-primary btn-lg w-100 shadow-sm">
-                                <i class="fas fa-external-link-alt me-2"></i> Leer noticia completa en la web oficial
-                            </a>
+                        <!-- Imagen -->
+                        <div class="position-relative mb-4">
+                            <img src="${item.img || FALLBACK_IMGS[0]}" referrerpolicy="no-referrer" class="img-fluid rounded-4 w-100 shadow" style="max-height:450px; object-fit:cover;" onerror="this.src='${FALLBACK_IMGS[0]}'">
+                            ${item.source ? `<span class="position-absolute bottom-0 end-0 bg-dark text-white px-3 py-1 m-3 rounded-pill opacity-75 small">${item.source}</span>` : ''}
                         </div>
 
-                        <div id="ai-box" class="ai-box p-4 border-0 rounded-4 mb-4 shadow-sm d-none" style="background: linear-gradient(135deg, #e0f7fa 0%, #ffffff 100%); border-left: 5px solid #0dcaf0 !important;">
-                            <h5 class="fw-bold" style="color: #0891b2;">✨ Crónica IA Premium:</h5>
-                            <div id="ai-output" class="mb-0 text-dark" style="line-height: 1.7; font-size: 1.05rem;"></div>
+                        <!-- Botón Fuente (Prominente) -->
+                        <div class="d-grid gap-2 mb-5">
+                            <a href="${item.link}" target="_blank" class="btn btn-primary btn-lg rounded-pill shadow-sm py-3 fw-bold">
+                                <i class="fas fa-external-link-alt me-2"></i> Leer Artículo Completo en Fuente Oficial
+                            </a>
                         </div>
                         
-                        <button id="ai-btn" class="btn btn-dark w-100 mb-4 py-3 rounded-pill shadow-sm" onclick="window.app.generateAISummary('${uniqueId}')">
-                            <i class="fas fa-magic me-2 text-info"></i> Generar Resumen Inteligente Premium
-                        </button>
-                        
-                        <div class="detail-content bg-body-tertiary p-4 rounded-3">
-                            <p class="lead fw-bold">📝 Extracto original:</p>
-                            <p style="text-align: justify; line-height: 1.6;">${item.content || item.desc || 'Contenido no disponible'}</p>
+                        <!-- Extracto Estilizado (Sin IA, solo diseño bonito) -->
+                        <div class="detail-content bg-white p-4 p-md-5 rounded-4 shadow-sm border border-light">
+                            <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-newspaper me-2 text-primary"></i> Resumen / Extracto:</h5>
+                            <div class="fs-5 text-secondary" style="text-align: justify; line-height: 1.8; font-family: 'Segoe UI', system-ui, sans-serif;">
+                                ${extracto}
+                            </div>
                         </div>
+                        
                     </div>
                 </div>
             </div>`;
     },
 
-    generateAISummary: async function(uniqueId) {
-        const item = state.cache.get(uniqueId);
-        if (!item) return;
-
-        const outputEl = document.getElementById('ai-output');
-        const boxEl = document.getElementById('ai-box');
-        const btn = document.getElementById('ai-btn');
-
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Redactando...`;
-        
-        try {
-            const res = await fetch(SUMMARY_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    text: item.content || item.desc || '', 
-                    title: item.title || '',
-                    lang: state.lang 
-                })
-            });
-            if (!res.ok) throw new Error('AI service failed');
-            const data = await res.json();
-            
-            boxEl.classList.remove('d-none');
-            outputEl.innerHTML = data.summary;
-            btn.style.display = 'none';
-            boxEl.scrollIntoView({ behavior: 'smooth' });
-        } catch (e) {
-            alert("No se pudo conectar con el servicio de IA. Inténtelo más tarde.");
-            btn.disabled = false;
-            btn.innerHTML = `<i class="fas fa-magic me-2"></i> Reintentar Resumen`;
-        }
+    generateAISummary: function() {
+        // Función desactivada
+        console.log("AI Disabled");
     },
     
     showLoader: function() { document.getElementById('news-container').innerHTML = `<div class="d-flex justify-content-center py-5"><div class="spinner-border text-info"></div></div>`; },
