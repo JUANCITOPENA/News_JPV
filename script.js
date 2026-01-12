@@ -234,17 +234,17 @@ window.app = {
 
             return `
             <div class="col-md-6 col-lg-3 news-col">
-                <article class="news-card" onclick="window.app.openDetail('${safeId}')">
-                    <div class="img-wrapper">
+                <article class="news-card">
+                    <div class="img-wrapper" onclick="window.app.openDetail('${safeId}')" style="cursor:pointer;">
                         <img src="${imgUrl}" loading="lazy" onerror="this.src='${FALLBACK_IMGS[0]}'">
                         ${item.rating ? `<div class="movie-rating">⭐ ${item.rating}</div>` : ''}
                     </div>
                     <div class="card-body">
                         <div class="news-meta"><span>${item.source}</span></div>
-                        <h3 class="news-title">${item.title}</h3>
+                        <h3 class="news-title" onclick="window.app.openDetail('${safeId}')" style="cursor:pointer;">${item.title}</h3>
                         <p class="news-desc">${item.desc || '...'}</p>
                         <div class="card-actions">
-                            <button class="btn action-btn">${type === 'movies' ? t.viewDetails : t.readMore}</button>
+                            <a href="${item.link}" target="_blank" class="btn action-btn">${type === 'movies' ? t.viewDetails : '🔗 Fuente'}</a>
                             <button class="btn btn-icon rounded-circle ${isFav ? 'favorite-active' : ''}" onclick="window.app.toggleFavorite('${safeId}', event)"><i class="fas fa-heart"></i></button>
                             <button class="btn btn-icon rounded-circle" onclick="window.app.shareItem('${item.link}', '${item.title}', event)"><i class="fas fa-share-alt"></i></button>
                         </div>
@@ -271,46 +271,28 @@ window.app = {
                         <h1 class="display-5 fw-bold mb-3">${item.title}</h1>
                         <img src="${item.img || FALLBACK_IMGS[0]}" class="img-fluid rounded-3 w-100 mb-4 shadow" style="max-height:500px; object-fit:cover;">
                         
-                        <div id="ai-box" class="ai-box d-none">
-                            <h5 class="fw-bold">🤖 Resumen IA:</h5>
-                            <p id="ai-output" class="mb-0"></p>
+                        <div class="d-grid gap-2 mb-4">
+                            <a href="${item.link}" target="_blank" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-external-link-alt me-2"></i> Leer noticia completa en la web oficial
+                            </a>
                         </div>
-                        <button id="ai-btn" class="btn btn-info mb-4" onclick="window.app.generateAISummary(\`${item.content || item.desc}\`)">${t.aiBtn}</button>
+
+                        <div id="ai-box" class="ai-box p-3 border border-info rounded-3 mb-4 bg-info-subtle">
+                            <h5 class="fw-bold text-info-emphasis">🤖 Resumen IA:</h5>
+                            <p class="mb-0">⚠️ <strong>Función en construcción</strong> - Acceso restringido para planes de pago y suscriptores Premium.</p>
+                        </div>
                         
-                        <div class="detail-content bg-body-tertiary p-4 rounded-3">
-                            <p class="lead">${item.desc}</p>
-                            <hr><p>${item.content}</p>
+                        <div class="detail-content bg-body-tertiary p-4 rounded-3 text-justify">
+                            <p class="lead fw-bold">📝 Extracto del artículo:</p>
+                            <p style="text-align: justify; line-height: 1.6;">${item.content || item.desc || 'Contenido no disponible'}</p>
                         </div>
                     </div>
                 </div>
             </div>`;
     },
 
-    generateAISummary: async function(text) {
-        const outputEl = document.getElementById('ai-output');
-        const boxEl = document.getElementById('ai-box');
-        const btn = document.getElementById('ai-btn');
-
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Analizando...`;
-        boxEl.classList.remove('d-none');
-        outputEl.textContent = 'Contactando red neural...';
-
-        try {
-            const res = await fetch(SUMMARY_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text, lang: state.lang })
-            });
-            if (!res.ok) throw new Error('AI service failed');
-            const data = await res.json();
-            outputEl.innerHTML = data.summary.replace(/\n/g, '<br>');
-            btn.style.display = 'none';
-        } catch (e) {
-            outputEl.textContent = 'Error al conectar con el servicio de IA.';
-            btn.disabled = false;
-            btn.textContent = 'Reintentar';
-        }
+    generateAISummary: function() {
+        alert("Esta función está actualmente en mantenimiento y requiere una suscripción activa.");
     },
     
     showLoader: function() { document.getElementById('news-container').innerHTML = `<div class="d-flex justify-content-center py-5"><div class="spinner-border text-info"></div></div>`; },
