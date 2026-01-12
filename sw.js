@@ -1,5 +1,5 @@
 // sw.js
-const CACHE_NAME = 'jpv-news-v2';
+const CACHE_NAME = 'jpv-news-v4'; // V4 para forzar recarga limpia
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

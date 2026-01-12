@@ -232,21 +232,27 @@ window.app = {
             const isFav = state.favorites.some(f => f.id === item.id);
             const safeId = item.id.replace(/"/g, '&quot;');
 
+        const cardsHTML = items.map(item => {
+            const imgUrl = item.img || FALLBACK_IMGS[0];
+            const isFav = state.favorites.some(f => f.id === item.id);
+            // CORRECCIÓN CRÍTICA: Escapar comillas simples y dobles para evitar SyntaxError en onclick
+            const safeId = item.id.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+
             return `
             <div class="col-md-6 col-lg-3 news-col">
                 <article class="news-card">
                     <div class="img-wrapper" onclick="window.app.openDetail('${safeId}')" style="cursor:pointer;">
-                        <img src="${imgUrl}" loading="lazy" onerror="this.src='${FALLBACK_IMGS[0]}'">
+                        <img src="${imgUrl}" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='${FALLBACK_IMGS[0]}'">
                         ${item.rating ? `<div class="movie-rating">⭐ ${item.rating}</div>` : ''}
                     </div>
                     <div class="card-body">
                         <div class="news-meta"><span>${item.source}</span></div>
-                        <h3 class="news-title" onclick="window.app.openDetail('${safeId}')" style="cursor:pointer;">${item.title}</h3>
+                        <h3 class="news-title" onclick="window.app.openDetail('${safeId}')" style="cursor:pointer;">${item.title.replace(/'/g, '')}</h3>
                         <p class="news-desc">${item.desc || '...'}</p>
                         <div class="card-actions">
-                            <a href="${item.link}" target="_blank" class="btn action-btn">${type === 'movies' ? t.viewDetails : '🔗 Fuente'}</a>
+                            <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="btn action-btn">🔗 Fuente</a>
                             <button class="btn btn-icon rounded-circle ${isFav ? 'favorite-active' : ''}" onclick="window.app.toggleFavorite('${safeId}', event)"><i class="fas fa-heart"></i></button>
-                            <button class="btn btn-icon rounded-circle" onclick="window.app.shareItem('${item.link}', '${item.title}', event)"><i class="fas fa-share-alt"></i></button>
+                            <button class="btn btn-icon rounded-circle" onclick="window.app.shareItem('${item.link}', '${item.title.replace(/'/g, "")}', event)"><i class="fas fa-share-alt"></i></button>
                         </div>
                     </div>
                 </article>
